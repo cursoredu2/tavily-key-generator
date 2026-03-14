@@ -19,12 +19,17 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "t
 http_client = httpx.AsyncClient(timeout=60)
 
 
+def get_admin_password():
+    return db.get_setting("admin_password", ADMIN_PASSWORD)
+
+
 # ═══ Auth helpers ═══
 
 def verify_admin(request: Request):
     auth = request.headers.get("Authorization", "")
     password = request.headers.get("X-Admin-Password", "")
-    if auth == f"Bearer {ADMIN_PASSWORD}" or password == ADMIN_PASSWORD:
+    pwd = get_admin_password()
+    if auth == f"Bearer {pwd}" or password == pwd:
         return True
     raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -186,10 +191,9 @@ async def remove_token(token_id: int, _=Depends(verify_admin)):
 
 @app.put("/api/password")
 async def change_password(request: Request, _=Depends(verify_admin)):
-    global ADMIN_PASSWORD
     body = await request.json()
     new_pwd = body.get("password", "").strip()
     if not new_pwd or len(new_pwd) < 4:
         raise HTTPException(status_code=400, detail="Password too short (min 4)")
-    ADMIN_PASSWORD = new_pwd
+    db.set_setting("admin_password", new_pwd)
     return {"ok": True}

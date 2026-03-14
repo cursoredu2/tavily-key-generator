@@ -53,9 +53,34 @@ def init_db():
 
         CREATE INDEX IF NOT EXISTS idx_usage_created ON usage_logs(created_at);
         CREATE INDEX IF NOT EXISTS idx_usage_token ON usage_logs(token_id);
+
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
     """)
     conn.commit()
     conn.close()
+
+
+# ═══ Settings ═══
+
+def get_setting(key, default=None):
+    conn = get_conn()
+    try:
+        row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+        return row["value"] if row else default
+    finally:
+        conn.close()
+
+
+def set_setting(key, value):
+    conn = get_conn()
+    try:
+        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # ═══ API Keys ═══
