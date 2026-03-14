@@ -1,8 +1,82 @@
-# Tavily Key Generator
+# Tavily Key Generator + API Proxy
+
+批量注册 Tavily 账户获取 API Key，并通过代理网关池化管理，对外提供统一 API 端点。
+
+## 两个模块
+
+| 模块 | 说明 |
+|------|------|
+| **Key Generator**（根目录） | 自动批量注册 Tavily 账户，获取 API Key |
+| **API Proxy**（`proxy/`） | 将多个 Key 池化，统一出口 + Web 控制台 |
+
+---
+
+## API Proxy（代理网关）
+
+将多个 Tavily API Key 池化，对外暴露统一端点和 Token，附带 Web 管理控制台。
+
+### Proxy 功能
+
+- **Key 池化轮询**：Round-robin 分配请求，连续失败 3 次自动禁用
+- **Token 管理**：多个访问 Token，每个独立配额（小时/日/月限制）
+- **用量统计**：实时查看成功/失败次数、延迟、配额使用情况
+- **Web 控制台**：可视化管理 Key、Token 和用量
+- **批量导入**：支持从 `api_keys.md` 格式文本批量导入 Key
+- **兼容 Tavily 官方 API**：客户端只需改 base URL
+
+### Docker 部署
+
+```bash
+cd proxy/
+cp .env.example .env
+# 编辑 .env 中的 ADMIN_PASSWORD
+docker compose up -d
+```
+
+服务运行在 `http://localhost:9874`，访问 `/console` 进入管理控制台。
+
+### 使用方式
+
+1. 访问 `http://localhost:9874/console`，输入管理密码登录
+2. 导入 Tavily API Key（支持单个添加或从 `api_keys.md` 批量导入）
+3. 创建 Token，复制 Token ID
+4. 在应用中调用代理：
+
+```bash
+curl -X POST http://localhost:9874/api/search \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "hello world"}'
+```
+
+### Proxy API 参考
+
+**代理端点**（需要 Token 认证）：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/search` | 代理 Tavily Search API |
+| POST | `/api/extract` | 代理 Tavily Extract API |
+
+**管理端点**（需要 `X-Admin-Password` 请求头）：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/console` | Web 管理控制台 |
+| GET | `/api/stats` | 用量统计概览 |
+| GET/POST | `/api/keys` | 列出/添加 Key |
+| DELETE | `/api/keys/{id}` | 删除 Key |
+| PUT | `/api/keys/{id}/toggle` | 启用/禁用 Key |
+| GET/POST | `/api/tokens` | 列出/创建 Token |
+| DELETE | `/api/tokens/{id}` | 删除 Token |
+
+---
+
+## Key Generator（批量注册）
 
 自动批量注册 Tavily 账户并获取 API Key。
 
-## 功能
+### Generator 功能
 
 - Playwright 浏览器自动化，全流程无人值守
 - 自动解决 Cloudflare Turnstile 验证码（CapSolver API）
