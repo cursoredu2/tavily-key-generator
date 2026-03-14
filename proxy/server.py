@@ -102,7 +102,7 @@ async def proxy_tavily(request: Request):
 
 # ═══ 控制台 ═══
 
-@app.get("/console", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def console(request: Request):
     return templates.TemplateResponse("console.html", {"request": request})
 

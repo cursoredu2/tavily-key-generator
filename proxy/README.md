@@ -38,7 +38,7 @@ ADMIN_PASSWORD=your-password uvicorn server:app --host 0.0.0.0 --port 9874
 
 ## 使用流程
 
-1. 访问 `http://localhost:9874/console`，输入管理密码登录
+1. 访问 `http://localhost:9874/`，输入管理密码登录
 2. 在 Key 管理中导入 Tavily API Key（支持单个添加或批量导入）
 3. 创建 Token，复制 Token ID
 4. 在应用中使用代理端点：
@@ -75,7 +75,7 @@ curl -X POST http://localhost:9874/api/search \
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/console` | Web 管理控制台 |
+| GET | `/` | Web 管理控制台 |
 | GET | `/api/stats` | 用量统计概览 |
 | GET | `/api/keys` | 列出所有 Key（脱敏显示） |
 | POST | `/api/keys` | 添加 Key：`{"key":"tvly-xxx"}` 或批量 `{"file":"文本内容"}` |
