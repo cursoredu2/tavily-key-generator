@@ -9,7 +9,6 @@ from playwright.sync_api import sync_playwright
 from config import *
 from utils import save_api_key
 from email_providers import create_email_provider
-from capsolver_solver import solve_turnstile, extract_turnstile_sitekey, inject_turnstile_token
 
 
 class IntelligentTavilyAutomation:
@@ -113,6 +112,16 @@ class IntelligentTavilyAutomation:
 
         self.page = self.browser.new_page()
         self.page.set_default_timeout(30000)
+
+        # 应用反检测补丁（免费模式下有助于通过 Turnstile）
+        try:
+            from playwright_stealth import stealth_sync
+            stealth_sync(self.page)
+            self.log("✅ 已应用浏览器反检测补丁")
+        except ImportError:
+            self.log("⚠️ playwright-stealth 未安装，跳过反检测（pip install playwright-stealth）")
+        except Exception as e:
+            self.log(f"⚠️ 反检测补丁应用失败: {e}")
     
     def close_browser(self):
         """关闭浏览器"""
@@ -305,34 +314,38 @@ class IntelligentTavilyAutomation:
             self.log("🔍 检查是否有 Turnstile 验证...")
             time.sleep(3)
 
-            # 提取 sitekey
-            sitekey = extract_turnstile_sitekey(self.page)
-            if not sitekey:
-                self.log("✅ 未检测到 Turnstile，跳过")
+            if CAPTCHA_SOLVER == "browser":
+                # 免费模式：浏览器内点击复选框
+                from browser_solver import solve_turnstile_browser
+                return solve_turnstile_browser(self.page)
+            else:
+                # 付费模式：CapSolver API
+                from capsolver_solver import solve_turnstile, extract_turnstile_sitekey, inject_turnstile_token
+
+                sitekey = extract_turnstile_sitekey(self.page)
+                if not sitekey:
+                    self.log("✅ 未检测到 Turnstile，跳过")
+                    return True
+
+                self.log(f"⚠️ 检测到 Turnstile! sitekey: {sitekey[:20]}...")
+
+                current_url = self.page.url
+                token = solve_turnstile(current_url, sitekey)
+
+                if not token:
+                    self.log("❌ Turnstile 解决失败")
+                    return False
+
+                inject_turnstile_token(self.page, token)
+                time.sleep(3)
+
+                try:
+                    self.page.wait_for_load_state('networkidle', timeout=10000)
+                except:
+                    pass
+
+                self.log("✅ Turnstile 验证已通过")
                 return True
-
-            self.log(f"⚠️ 检测到 Turnstile! sitekey: {sitekey[:20]}...")
-
-            # 调用 CapSolver 解决
-            current_url = self.page.url
-            token = solve_turnstile(current_url, sitekey)
-
-            if not token:
-                self.log("❌ Turnstile 解决失败")
-                return False
-
-            # 注入 token
-            inject_turnstile_token(self.page, token)
-            time.sleep(3)
-
-            # 等待页面响应（可能自动提交或需要点击）
-            try:
-                self.page.wait_for_load_state('networkidle', timeout=10000)
-            except:
-                pass
-
-            self.log("✅ Turnstile 验证已通过")
-            return True
 
         except Exception as e:
             self.log(f"❌ Turnstile 处理异常: {e}")

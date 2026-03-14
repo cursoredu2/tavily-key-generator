@@ -7,7 +7,7 @@ Auto batch register Tavily accounts and retrieve API Keys.
 ## 功能 / Features
 
 - 基于 Playwright 的浏览器自动化注册
-- CapSolver 自动解决 Cloudflare Turnstile 验证码
+- Cloudflare Turnstile 验证码：免费浏览器模式 / CapSolver 付费 API
 - 自动接收验证邮件并完成邮箱验证
 - 可插拔邮箱后端：Cloudflare Email Worker / DuckMail
 - 批量注册，自动保存 API Key
@@ -67,11 +67,22 @@ DUCKMAIL_BEARER = "dk_xxx"           # DuckMail API Key
 DUCKMAIL_DOMAIN = "duckmail.sbs"
 ```
 
-## CapSolver 配置
+## 验证码解决 / CAPTCHA Solver
 
-从 [capsolver.com](https://www.capsolver.com/) 注册并获取 API Key，用于自动解决 Cloudflare Turnstile 验证码。
+### 浏览器模式（免费）
+
+默认使用浏览器内点击 Turnstile 复选框，配合 `playwright-stealth` 反检测。适合前台模式运行。
 
 ```python
+CAPTCHA_SOLVER = "browser"
+```
+
+### CapSolver（付费）
+
+如果免费模式不稳定，可使用 [capsolver.com](https://www.capsolver.com/) 付费 API，更可靠。
+
+```python
+CAPTCHA_SOLVER = "capsolver"
 CAPSOLVER_API_KEY = "CAP-xxx"
 ```
 
@@ -89,7 +100,7 @@ CAPSOLVER_API_KEY = "CAP-xxx"
 A: 确保已运行 `playwright install firefox`。
 
 **Q: Turnstile 解决失败？**
-A: 检查 CapSolver API Key 余额，或重试。
+A: 免费模式请使用前台模式运行（`HEADLESS = False`）。如果仍失败，切换到 `CAPTCHA_SOLVER = "capsolver"`。
 
 **Q: 收不到验证邮件？**
 A: Cloudflare 模式检查 Worker 是否正常工作；DuckMail 模式检查 Bearer Token。

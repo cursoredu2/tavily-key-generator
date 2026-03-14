@@ -17,7 +17,11 @@ DUCKMAIL_API_BASE = "https://api.duckmail.sbs"
 DUCKMAIL_BEARER = ""        # DuckMail API Key (dk_xxx)
 DUCKMAIL_DOMAIN = "duckmail.sbs"
 
-# ═══ CapSolver (解决 Cloudflare Turnstile 验证码) ═══
+# ═══ 验证码 ═══
+# 解决方式: "browser" (免费，浏览器内点击) 或 "capsolver" (付费 API)
+CAPTCHA_SOLVER = "browser"
+
+# CapSolver (CAPTCHA_SOLVER = "capsolver" 时必填)
 CAPSOLVER_API_KEY = ""      # 从 capsolver.com 获取
 
 # ═══ 注册配置 ═══
