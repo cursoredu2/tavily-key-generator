@@ -34,17 +34,17 @@ Cloudflare 通用无限别名域名邮箱教程见：
 
 ## Screenshots
 
-### 启动台
-
-![Launcher Overview](./docs/screenshots/launcher-overview.jpg)
-
 ### 并发注册与真实验证
 
 ![Registration Success](./docs/screenshots/registration-success.jpg)
 
-### Proxy 控制台
+### Proxy 控制台总览
 
-![Proxy Dashboard](./docs/screenshots/proxy-dashboard.jpg)
+![Proxy Overview Usage](./docs/screenshots/proxy-overview-usage.jpg)
+
+### Proxy Key 池详情
+
+![Proxy Key Pool](./docs/screenshots/proxy-key-pool.jpg)
 
 ## Quick Start
 
